@@ -57,7 +57,7 @@ public class ASDNR implements Parser{
        A1.put(TipoToken.ASTERISCO, "error");
        A1.put(TipoToken.COMA, ", A");
        A1.put(TipoToken.PUNTO, "error");
-       A1.put(TipoToken.IDENTIFICADOR, "A2 A1");
+       A1.put(TipoToken.IDENTIFICADOR, "error");
        A1.put(TipoToken.EOF, "error");
        tablaASDNR.put("A1", A1);
 
@@ -77,9 +77,9 @@ public class ASDNR implements Parser{
        A3.put(TipoToken.DISTINCT, "error");
        A3.put(TipoToken.FROM, "Ɛ");
        A3.put(TipoToken.ASTERISCO, "error");
-       A3.put(TipoToken.COMA, ", Ɛ");
+       A3.put(TipoToken.COMA, "Ɛ");
        A3.put(TipoToken.PUNTO, ". id");
-       A3.put(TipoToken.IDENTIFICADOR, "id A3");
+       A3.put(TipoToken.IDENTIFICADOR, "error");
        A3.put(TipoToken.EOF, "error");
        tablaASDNR.put("A3", A3);
 
@@ -146,6 +146,7 @@ public class ASDNR implements Parser{
         String salida;
         String [] elementos;
         List<Token> tokenError = new ArrayList<>();
+        Map<TipoToken,String> produccionAnterior = produccion;
 
         while (!pila.isEmpty() ){
             //identificamos si es alguna palabra reservada
@@ -166,11 +167,13 @@ public class ASDNR implements Parser{
             }//identificar si es un identificador
             else if(tokens.get(i).tipo.equals(TipoToken.IDENTIFICADOR) && pila.peek().equals("id")) {
                 pila.pop();
+                produccionAnterior = produccion;
                 produccion = tablaASDNR.get(pila.peek());
                 i++;
             } //identificar si es un asterisco
             else if(tokens.get(i).tipo.equals(TipoToken.ASTERISCO) && pila.peek().equals("*")) {
                 pila.pop();
+                produccionAnterior = produccion;
                 produccion = tablaASDNR.get(pila.peek());
                 i++;
             } // identificar si es una comma
@@ -184,8 +187,9 @@ public class ASDNR implements Parser{
                 produccion = tablaASDNR.get(pila.peek());
                 i++;
             } //Hay errores
-            else if (produccion.get(tokens.get(i).tipo).equals("error")) {
+            else if (produccion == null || produccion.get(tokens.get(i).tipo).equals("error") ) {
                 hayErrores = true;
+                if (produccion == null) produccion = produccionAnterior;
                 preanalisis = tokens.get(i);
                 error(tokenError);
                 break;
